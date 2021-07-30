@@ -38,13 +38,9 @@
     </el-container>
   </div>
 
-  <div
+  <loading-view
     v-else
     key="window-loading"
-    v-loading="!isLoaded"
-    :element-loading-text="$t('notifications.loading')"
-    element-loading-background="rgba(255, 255, 255, 0.8)"
-    class="view-loading"
   />
 </template>
 
@@ -52,13 +48,15 @@
 import { defineComponent, computed, ref } from '@vue/composition-api'
 
 import ActionMenu from '@/components/ADempiere/ActionMenu'
+import LoadingView from '@/components/ADempiere/LoadingView'
 import { generateWindow as generateWindowRespose } from './windowUtils'
 
 export default defineComponent({
   name: 'Window',
 
   components: {
-    ActionMenu
+    ActionMenu,
+    LoadingView
   },
 
   props: {

@@ -30,6 +30,7 @@
         :current-tab="tabsList[currentTab]"
       />
     </auxiliary-panel>
+
     <el-tabs
       v-model="currentTab"
       type="border-card"
@@ -49,7 +50,7 @@
       >
         <lock-record
           slot="label"
-          :tab-position="key"
+          :tab-position="isParentTabs ? key : 1"
           :tab-uuid="tabAttributes.uuid"
           :table-name="tabAttributes.tableName"
           :tab-name="tabAttributes.name"
@@ -64,7 +65,27 @@
           </el-button>
         </lock-record>
 
+        <!-- records in table to multi records -->
+        <!-- // TODO: remove generatePanelAndFields metho with store -->
+        <default-table
+          v-if="!isParentTabs"
+          v-show="!isParentTabs && isShowMultiRecords"
+          key="default-table"
+          :parent-uuid="parentUuid"
+          :container-uuid="tabAttributes.uuid"
+          :container-manager="containerManagerTab"
+          :header="tableheaders"
+          :data-table="recordsList"
+          :panel-metadata="generatePanelAndFields({
+            parentUuid: parentUuid,
+            containerUuid: tabAttributes.uuid,
+            panelMetadata: tabAttributes
+          })"
+        />
+        <!-- fields in panel to single record -->
         <panel-definition
+          v-show="isParentTabs || (!isParentTabs && !isShowMultiRecords)"
+          key="panel-definition"
           :parent-uuid="parentUuid"
           :container-uuid="tabAttributes.uuid"
           :container-manager="containerManager"
@@ -80,19 +101,22 @@
 <script>
 import { defineComponent, computed, ref } from '@vue/composition-api'
 
+import { generatePanelAndFields } from '@/components/ADempiere/PanelDefinition/panelUtils'
+import AuxiliaryPanel from '@/components/ADempiere/AuxiliaryPanel'
+import DefaultTable from '@/components/ADempiere/DefaultTable'
 import LockRecord from '@/components/ADempiere/ContainerOptions/LockRecord'
 import PanelDefinition from '@/components/ADempiere/PanelDefinition'
 import RecordNavigation from '@/components/ADempiere/RecordNavigation'
-import AuxiliaryPanel from '@/components/ADempiere/AuxiliaryPanel'
 
 export default defineComponent({
   name: 'TabManager',
 
   components: {
+    AuxiliaryPanel,
+    DefaultTable,
     LockRecord,
     PanelDefinition,
-    RecordNavigation,
-    AuxiliaryPanel
+    RecordNavigation
   },
 
   props: {
@@ -107,12 +131,21 @@ export default defineComponent({
     tabsList: {
       type: Array,
       default: () => []
+    },
+    isParentTabs: {
+      type: Boolean,
+      default: true
     }
   },
 
   setup(props, { root }) {
+    let queryProperty = 'tab'
+    if (!props.isParentTabs) {
+      queryProperty = 'tabChild'
+    }
+
     // if tabParent is present in path set this
-    const tabNo = root.$route.query.tab || '0'
+    const tabNo = root.$route.query[queryProperty] || '0'
     const currentTab = ref(tabNo)
 
     const tabUuid = ref(props.tabsList[tabNo].uuid)
@@ -124,9 +157,13 @@ export default defineComponent({
         overflow: 'auto'
       }
     })
+
     const isShowRecords = computed(() => {
       return root.$store.getters.getExternalContainer
     })
+
+    const isShowMultiRecords = ref(true)
+
     const isCreateNew = computed(() => {
       return Boolean(root.$route.query.action === 'create-new')
     })
@@ -145,6 +182,15 @@ export default defineComponent({
 
         vuexStore: () => 'dataManager'
       }
+    })
+
+    // create the table header
+    const tableheaders = computed(() => {
+      const panel = props.tabsList[tabNo]
+      if (panel && panel.fieldsList) {
+        return panel.fieldsList
+      }
+      return []
     })
 
     /**
@@ -170,7 +216,7 @@ export default defineComponent({
       root.$router.push({
         query: {
           ...root.$route.query,
-          tab: currentTab.value
+          [queryProperty]: currentTab.value
         },
         params: {
           ...root.$route.params
@@ -186,6 +232,17 @@ export default defineComponent({
       }
       return tabNumber
     }
+
+    // get records list
+    const recordsList = computed(() => {
+      const data = root.$store.getters['dataManager/getContainerData']({
+        containerUuid: props.containerUuid
+      })
+      if (data && data.recordsList) {
+        return data.recordsList
+      }
+      return []
+    })
 
     const getData = () => {
       // TODO: Add store get data from tab
@@ -214,9 +271,16 @@ export default defineComponent({
         }
       })
     }
+
     const openContainer = () => {
-      root.$store.commit('setExternalContainer', true)
+      if (props.isParentTabs) {
+        // TODO: Add tab manager store
+        root.$store.commit('setExternalContainer', true)
+        return
+      }
+      isShowMultiRecords.value = !isShowMultiRecords.value
     }
+
     getData()
 
     setTabNumber(currentTab.value)
@@ -224,11 +288,15 @@ export default defineComponent({
     return {
       tabUuid,
       currentTab,
+      isShowMultiRecords,
+      tableheaders,
+      recordsList,
       // computed
       containerManagerTab,
       isShowRecords,
       tabStyle,
-      // meyhods
+      // methods
+      generatePanelAndFields,
       handleClick,
       openContainer,
       isDisabledTab
@@ -237,18 +305,3 @@ export default defineComponent({
 
 })
 </script>
-
-<style lang="scss">
-.record-navigation-drawer {
-  // drawer title
-  .el-drawer__header {
-    padding-top: 10px;
-    margin-bottom: 10px;
-  }
-
-  // drawer content
-  .el-drawer__body {
-    max-height: calc(100vh - 44px);
-  }
-}
-</style>
