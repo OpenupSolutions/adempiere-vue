@@ -27,11 +27,10 @@
       v-if="showContextMenu"
       style="height: 30px;"
     >
-      <context-menu
-        :menu-parent-uuid="$route.meta.parentUuid"
-        :container-uuid="processUuid"
-        :panel-type="panelType"
-        :is-report="processMetadata.isReport"
+      <action-menu
+        :parent-uuid="processUuid"
+        :actions-manager="actionsManager"
+        :relations-manager="relationsManager"
       />
     </el-header>
 
@@ -45,38 +44,36 @@
         <el-scrollbar wrap-class="scroll-child">
           <panel-definition
             :container-uuid="processUuid"
-            :metadata="processMetadata"
-            :panel-type="panelType"
+            :panel-metadata="processMetadata"
+            :container-manager="containerManager"
           />
         </el-scrollbar>
       </el-card>
     </el-main>
   </el-container>
 
-  <div
+  <loading-view
     v-else
-    key="process-loading"
-    v-loading="!isLoadedMetadata"
-    :element-loading-text="$t('notifications.loading')"
-    element-loading-spinner="el-icon-loading"
-    element-loading-background="rgba(255, 255, 255, 0.8)"
-    class="view-loading"
+    key="window-loading"
   />
 </template>
 
 <script>
 import { defineComponent, computed, ref } from '@vue/composition-api'
 
-import ContextMenu from '@/components/ADempiere/ContextMenu'
-import PanelDefinition from '@/components/ADempiere/PanelDefinition'
-import TitleAndHelp from '@/components/ADempiere/TitleAndHelp'
+import ActionMenu from '@/components/ADempiere/ActionMenu/index.vue'
+import LoadingView from '@/components/ADempiere/LoadingView/index.vue'
+import PanelDefinition from '@/components/ADempiere/PanelDefinition/index.vue'
+import TitleAndHelp from '@/components/ADempiere/TitleAndHelp/index.vue'
+import { sharedLink } from '@/utils/ADempiere/constants/actionsMenuList'
 
 export default defineComponent({
-  name: 'Process',
+  name: 'ProcessView',
 
   components: {
+    ActionMenu,
+    LoadingView,
     PanelDefinition,
-    ContextMenu,
     TitleAndHelp
   },
 
@@ -103,8 +100,8 @@ export default defineComponent({
       return root.$store.state.settings.showContextMenu
     })
 
-    const getterProcess = computed(() => {
-      return root.$store.getters.getPanel(processUuid)
+    const storedProcess = computed(() => {
+      return root.$store.getters.getStoredProcess(processUuid)
     })
 
     root.$store.dispatch('settings/changeSetting', {
@@ -113,34 +110,56 @@ export default defineComponent({
     })
 
     const getProcess = async() => {
-      const process = getterProcess.value
+      const process = storedProcess.value
       if (process) {
         processMetadata.value = process
         isLoadedMetadata.value = true
         return
       }
 
-      root.$store.dispatch('getPanelAndFields', {
-        containerUuid: processUuid,
-        panelType,
-        routeToDelete: root.$route
-      }).then(processResponse => {
-        processMetadata.value = processResponse
-      }).finally(() => {
-        isLoadedMetadata.value = true
-      })
+      root.$store.dispatch('getProcessDefinitionFromServer', processUuid)
+        .then(processResponse => {
+          processMetadata.value = processResponse
+        }).finally(() => {
+          isLoadedMetadata.value = true
+        })
+    }
+
+    const containerManager = {
+      actionPerformed: ({ field, value }) => {
+        // let action = 'processActionPerformed'
+        // if (field.isReport) {
+        //   action = 'reportActionPerformed'
+        // }
+        // root.$store.dispatch(action, {
+        //   field,
+        //   value
+        // })
+      }
     }
 
     getProcess()
+
+    const actionsManager = ref({
+      actionsList: [
+        sharedLink
+      ]
+    })
+
+    const relationsManager = ref({
+      menuParentUuid: root.$route.meta.parentUuid
+    })
 
     return {
       processUuid,
       panelType,
       isLoadedMetadata,
       processMetadata,
+      containerManager,
+      actionsManager,
+      relationsManager,
       // computeds
       showContextMenu,
-      getterProcess,
       // methods
       getProcess
     }

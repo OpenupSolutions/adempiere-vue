@@ -23,8 +23,8 @@ import { isEmptyValue } from '@/utils/ADempiere/valueUtils.js'
 export default {
   addProcessToList(state, process) {
     if (!isEmptyValue(process)) {
-      if (!state.storedProcesss.find(processToFind => processToFind.uuid === process.uuid)) {
-        state.storedProcesss.push(process)
+      if (!state.storedProcesses.find(processToFind => processToFind.uuid === process.uuid)) {
+        state.storedProcesses.push(process)
       }
     }
   }
