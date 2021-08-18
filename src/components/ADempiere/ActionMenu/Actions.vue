@@ -44,26 +44,6 @@
       </el-dropdown-item>
 
       <el-scrollbar v-else key="withActions" wrap-class="scroll-child">
-        <!-- <el-dropdown-item
-          command="refreshData"
-        >
-          <div class="contents">
-            <div class="auxiliary-menu-icon">
-              <i class="el-icon-refresh" />
-            </div>
-            <div>
-              <span class="contents">
-                <b class="label">
-                  {{ $t('components.contextMenuRefresh') }}
-                </b>
-              </span>
-              <p class="description">
-                {{ $t('data.noDescription') }}
-              </p>
-            </div>
-          </div>
-        </el-dropdown-item> -->
-
         <el-dropdown-item
           v-for="(action, index) in actionsManager.actionsList"
           :key="index"
@@ -129,27 +109,6 @@
             </div>
           </div>
         </el-dropdown-item>
-
-        <!-- <el-dropdown-item
-          command="shareLink"
-          :divided="true"
-        >
-          <div class="contents">
-            <div class="auxiliary-menu-icon">
-              <i class="el-icon-share" />
-            </div>
-            <div>
-              <span class="contents">
-                <b class="label">
-                  {{ $t('components.contextMenuShareLink') }}
-                </b>
-              </span>
-              <p class="description">
-                {{ $t('data.noDescription') }}
-              </p>
-            </div>
-          </div>
-        </el-dropdown-item> -->
       </el-scrollbar>
     </el-dropdown-menu>
   </el-dropdown>
@@ -192,10 +151,6 @@ export default defineComponent({
     const setShareLink = () => {
 
     }
-
-    // const getterFieldsList = computed(() => {
-    //   return root.$store.getters.getFieldsListFromPanel(containerUuid)
-    // })
 
     const recordUuid = computed(() => {
       const { action } = root.$route.query
@@ -322,7 +277,7 @@ export default defineComponent({
     }
 
     const runAction = (action) => {
-      console.log(action)
+      console.log('action', action)
       action.callBack()
 
       if (action.type === 'action') {

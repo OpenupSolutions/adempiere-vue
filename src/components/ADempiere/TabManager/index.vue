@@ -246,7 +246,7 @@ export default defineComponent({
 
     const getData = () => {
       // TODO: Add store get data from tab
-      root.$store.dispatch('dataManager/getEntitiesList', {
+      root.$store.dispatch('dataManager/getEntities', {
         parentUuid: props.parentUuid,
         containerUuid: tabUuid.value,
         ...props.tabsList[currentTab.value]

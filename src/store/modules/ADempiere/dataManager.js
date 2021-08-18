@@ -24,7 +24,7 @@ const dataManager = {
   },
 
   actions: {
-    getEntitiesList({
+    getEntities({
       commit
     }, {
       parentUuid,
