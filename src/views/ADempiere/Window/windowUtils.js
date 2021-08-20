@@ -14,11 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { convertWindow } from '@/utils/ADempiere/apiConverts/dictionary.js'
-
-export function generateWindow(windowResponse) {
-  const responseWindow = convertWindow(windowResponse)
-
+export function generateWindow(responseWindow) {
   const {
     tabsList, tabsListParent, tabsListChild,
     firstTab, firstTabUuid
@@ -26,13 +22,12 @@ export function generateWindow(windowResponse) {
     tabs: responseWindow.tabs,
     parentUuid: responseWindow.uuid
   })
-
   const newWindow = {
     ...responseWindow,
     tabsList,
     currentTab: tabsListParent[0],
-    tabsListParent,
     tabsListChild,
+    tabsListParent,
     // app attributes
     currentTabUuid: tabsListParent[0].uuid,
     firstTab,
@@ -43,6 +38,9 @@ export function generateWindow(windowResponse) {
     isShowedAdvancedQuery: false
   }
 
+  // delete unused property
+  delete newWindow.tabs
+
   return newWindow
 }
 
@@ -52,7 +50,6 @@ export function generateTabs({
 }) {
   const firstTabTableName = tabs[0].tableName
   const firstTabUuid = tabs[0].uuid
-
   // indexes related to visualization
   const tabsList = tabs.filter((itemTab) => {
     return !(
@@ -74,10 +71,8 @@ export function generateTabs({
       isLoadFieldsList: false,
       index // this index is not related to the index in which the tabs are displayed
     }
-
     return tab
   })
-
   const tabsListParent = tabsList.filter(tabItem => {
     return tabItem.isParentTab
   }).map((itemTab, tabParentIndex) => {
@@ -86,22 +81,10 @@ export function generateTabs({
       tabParentIndex
     }
   })
-
-  // generate tabs childs
-  const tabsListChild = tabsList.filter(tabItem => {
-    return !tabItem.isParentTab
-  }).map((itemTab, tabChildIndex) => {
-    return {
-      ...itemTab,
-      tabChildIndex
-    }
-  })
-
   return {
     firstTabUuid,
     firstTab: tabsList[0],
     tabsListParent,
-    tabsListChild,
     tabsList
   }
 }
