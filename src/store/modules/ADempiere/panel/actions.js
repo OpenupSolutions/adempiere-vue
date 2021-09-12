@@ -178,23 +178,11 @@ const actions = {
           isClearSelection: true
         })
       } else if (panel.panelType === 'table' || panel.isAdvancedQuery) {
-        dispatch('getObjectListFromCriteria', {
-          parentUuid: panel.parentUuid,
-          containerUuid,
-          tableName: panel.tableName,
-          query: panel.query,
-          whereClause: panel.whereClause,
-          conditionsList: getters.getParametersToServer({
-            containerUuid,
-            isEvaluateMandatory: false
-          })
-        })
-          .catch(error => {
-            console.warn(`Error getting Advanced Query (changeFieldShowedFromUser): ${error.message}. Code: ${error.code}.`)
-          })
+        // get entities
       }
     }
   },
+
   /**
    * Change some attribute boolean from fields in panel
    * @param {string}  containerUuid
@@ -318,11 +306,11 @@ const actions = {
         return
       }
 
-      const oldRoute = router.app._route
+      const currentRoute = router.app._route
       const defaultAttributes = getters.getParsedDefaultValues({
         parentUuid,
         containerUuid,
-        isSOTrxMenu: oldRoute.meta.isSalesTransaction,
+        isSOTrxMenu: currentRoute.meta.isSalesTransaction,
         fieldsList: panel.fieldsList
       })
 

@@ -1,6 +1,6 @@
 // ADempiere-Vue (Frontend) for ADempiere ERP & CRM Smart Business Solution
 // Copyright (C) 2017-Present E.R.P. Consultores y Asociados, C.A.
-// Contributor(s): Yamel Senih ysenih@erpya.com www.erpya.com
+// Contributor(s): Edwin Betancourt EdwinBetanc0urt@outlook.com www.erpya.com
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -14,29 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import { requestWindowMetadata } from '@/api/ADempiere/dictionary/window'
-
-export default {
-  addWindow({ commit }, windowResponse) {
-    return new Promise(resolve => {
-      commit('addWindowToList', windowResponse)
-
-      resolve(windowResponse)
-    })
-  },
-
-  getWindowDefinitionFromServer({ dispatch }, {
-    uuid
-  }) {
-    return new Promise(resolve => {
-      requestWindowMetadata({
-        uuid
-      })
-        .then(async windowResponse => {
-          dispatch('addWindow', windowResponse)
-
-          resolve(windowResponse)
-        })
-    })
-  }
+const recordManager = {
+  deleteRecordSuccessful: 'Record deleted successfully',
+  deleteRecordError: 'Error deleting record'
 }
+
+export default recordManager
