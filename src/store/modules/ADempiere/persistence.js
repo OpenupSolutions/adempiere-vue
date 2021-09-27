@@ -6,6 +6,7 @@ import { isEmptyValue } from '@/utils/ADempiere/valueUtils.js'
 import { LOG_COLUMNS_NAME_LIST } from '@/utils/ADempiere/constants/systemColumns'
 import language from '@/lang'
 import { showMessage } from '@/utils/ADempiere/notification.js'
+import router from '@/router'
 
 const persistence = {
   state: {
@@ -39,6 +40,7 @@ const persistence = {
   actions: {
     actionPerformed({ commit, getters, dispatch }, {
       field,
+      recordUuid,
       value
     }) {
       return new Promise((resolve, reject) => {
@@ -65,8 +67,8 @@ const persistence = {
           })
           return
         }
-
-        const recordUuid = getters.getUuidOfContainer(field.containerUuid)
+        const route = router.app._route
+        recordUuid = route.query.action === 'create-new' ? getters.getUuidOfContainer(field.containerUuid) : route.query.action
         dispatch('flushPersistenceQueue', {
           containerUuid: field.containerUuid,
           tableName: field.tabTableName,
@@ -90,9 +92,8 @@ const persistence = {
             // omit send to server (to create or update) columns manage by backend
             return !LOG_COLUMNS_NAME_LIST.includes(itemField.columnName)
           })
-
         if (attributesList) {
-          if (recordUuid) {
+          if (!isEmptyValue(recordUuid)) {
             // Update existing entity
             updateEntity({
               tableName,
@@ -101,6 +102,10 @@ const persistence = {
             })
               .then(response => {
                 // TODO: Get list record log
+                showMessage({
+                  message: language.t('recordManager.updatedRecord'),
+                  type: 'success'
+                })
                 resolve(response)
               })
               .catch(error => reject(error))
@@ -117,7 +122,7 @@ const persistence = {
                   message: language.t('data.createRecordSuccessful'),
                   type: 'success'
                 })
-
+                response.type = 'createEntity'
                 resolve(response)
               })
               .catch(error => reject(error))
