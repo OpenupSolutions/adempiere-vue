@@ -16,7 +16,10 @@
 
 import router from '@/router'
 
+// api request methods
 import { requestProcessMetadata } from '@/api/ADempiere/dictionary/process.js'
+
+// utils and helper methods
 import { generateProcess } from '@/utils/ADempiere/dictionary/process.js'
 import { isEmptyValue } from '@/utils/ADempiere/valueUtils'
 
@@ -86,8 +89,8 @@ export default {
 
   /**
    * Set default values to panel
-   * @param {string}  parentUuid
    * @param {string}  containerUuid
+   * @param {array}  fieldsList
    */
   setProcessDefaultValues({ dispatch, getters }, {
     containerUuid,
@@ -113,5 +116,15 @@ export default {
 
       resolve(defaultAttributes)
     })
+  },
+  setReportDefaultValues({ dispatch }, {
+    containerUuid,
+    fieldsList = []
+  }) {
+    dispatch('setProcessDefaultValues', {
+      containerUuid,
+      fieldsList
+    })
   }
+
 }
