@@ -43,8 +43,12 @@
 </template>
 
 <script>
+// mixins
 import fieldMixin from '@/components/ADempiere/Field/mixin/mixinField.js'
-import { convertBooleanToString } from '@/utils/ADempiere/valueFormat.js'
+
+// utils and helper methods
+import { convertBooleanToString } from '@/utils/ADempiere/formatValue/booleanFormat.js'
+import { isEmptyValue } from '@/utils/ADempiere/valueUtils.js'
 
 /**
  * This component is a lookup type field, use as a replacement for fields:
@@ -58,7 +62,11 @@ import { convertBooleanToString } from '@/utils/ADempiere/valueFormat.js'
  */
 export default {
   name: 'FieldSelect',
-  mixins: [fieldMixin],
+
+  mixins: [
+    fieldMixin
+  ],
+
   data() {
     // label with '' value is assumed to be undefined non-existent
     const label = ' '
@@ -75,6 +83,7 @@ export default {
       blankOption
     }
   },
+
   computed: {
     isPanelWindow() {
       return this.metadata.panelType === 'window'
@@ -125,43 +134,19 @@ export default {
     value: {
       get() {
         const { columnName, containerUuid } = this.metadata
-        let value
         // table records values
         if (this.metadata.inTable) {
           const row = this.$store.getters.getRowData({
             containerUuid,
             index: this.metadata.tableIndex
           })
-          value = row[columnName]
-        } else {
-          value = this.$store.getters.getValueOfField({
-            parentUuid: this.metadata.parentUuid,
-            containerUuid,
-            columnName
-          })
+          return row[columnName]
         }
-
-        if (this.isEmptyValue(value)) {
-          /* eslint-disable */
-          this.displayedValue = undefined
-          this.uuidValue = undefined
-          /* eslint-disable */
-          return value
-        }
-
-        const option = this.findOption(value)
-        if (!option.label) {
-          const label = this.displayedValue
-          /* eslint-disable */
-          this.optionsList.push({
-            // TODO: Add uuid
-            id: value,
-            label
-          })
-          /* eslint-disable */
-        }
-
-        return value
+        return this.$store.getters.getValueOfField({
+          parentUuid: this.metadata.parentUuid,
+          containerUuid,
+          columnName
+        })
       },
       set(value) {
         const option = this.findOption(value)
@@ -185,7 +170,7 @@ export default {
           parentUuid: this.metadata.parentUuid,
           containerUuid: this.metadata.containerUuid,
           // 'ColumnName'_UUID
-          columnName: this.metadata.columnName + '_UUID',
+          columnName: this.metadata.columnName + '_UUID'
         })
       },
       set(value) {
@@ -203,6 +188,7 @@ export default {
     },
     displayedValue: {
       get() {
+        // DisplayColumn_'ColumnName'
         const { displayColumnName: columnName, containerUuid } = this.metadata
         // table records values
         if (this.metadata.inTable) {
@@ -210,13 +196,11 @@ export default {
             containerUuid,
             index: this.metadata.tableIndex
           })
-          // DisplayColumn_'ColumnName'
           return row[columnName]
         }
         return this.$store.getters.getValueOfField({
           parentUuid: this.metadata.parentUuid,
           containerUuid,
-          // DisplayColumn_'ColumnName'
           columnName
         })
       },
@@ -231,6 +215,7 @@ export default {
       }
     }
   },
+
   watch: {
     isSelectMultiple(isMultiple) {
       let value = this.value
@@ -257,11 +242,35 @@ export default {
         // if is field showed, search into store all options to list
         this.optionsList = this.getterLookupAll
       }
+    },
+    value(newValue) {
+      if (isEmptyValue(newValue)) {
+        this.displayedValue = undefined
+        this.uuidValue = undefined
+        return
+      }
+
+      const option = this.findOption(newValue)
+      if (!option.label) {
+        const label = this.displayedValue
+        if (!isEmptyValue(label)) {
+          this.optionsList.push({
+            // TODO: Add uuid
+            id: newValue,
+            label
+          })
+        } else {
+          // request lookup
+          this.getDataLookupItem()
+        }
+      }
     }
   },
+
   created() {
     this.changeBlankOption()
   },
+
   beforeMount() {
     if (this.metadata.displayed) {
       this.optionsList = this.getterLookupAll
@@ -272,18 +281,18 @@ export default {
           this.displayedValue = option.label
           this.uuidValue = option.uuid
         } else {
-          // TODO: Property displayColumn is @deprecated
-          if (!this.isEmptyValue(this.metadata.displayColumn)) {
+          if (!this.isEmptyValue(this.displayedValue)) {
             // verify if exists to add
             this.optionsList.push({
               id: value,
               // TODO: Add uuid
-              label: this.metadata.displayColumn
+              label: this.displayedValue
             })
           } else {
             if (!this.isPanelWindow || (this.isPanelWindow &&
               !this.isEmptyValue(this.$route.query) &&
               this.$route.query.action === 'create-new')) {
+              // request lookup
               this.getDataLookupItem()
             }
           }
@@ -291,6 +300,7 @@ export default {
       }
     }
   },
+
   methods: {
     parseValue(value) {
       if (typeof value === 'boolean') {

@@ -231,12 +231,12 @@ const getters = {
         attributesObject[fieldItem.columnName] = valueToReturn
 
         // Add display columns if field has value
-        if (fieldItem[propertyName] && fieldItem.displayColumn) {
-          // TODO: Verify displayColumn attribute, or get dispay column to fieldValue store
-          attributesObject[fieldItem.displayColumnName] = fieldItem.displayColumn
+        if (fieldItem[propertyName] && fieldItem.displayColumnName) {
+          // TODO: Verify displayColumnName attribute, or get dispay column to fieldValue store
+          attributesObject[fieldItem.displayColumnName] = fieldItem.displayColumnName
           displayColumnsList.push({
             columnName: fieldItem.displayColumnName,
-            value: fieldItem.displayColumn
+            value: fieldItem.displayColumnName
           })
         }
 
@@ -267,7 +267,7 @@ const getters = {
     return attributesList
   },
 
-  getParsedDefaultValues: (state, getters) => ({
+  getParsedDefaultValues: (state, getters, rootState, rootGetters) => ({
     parentUuid,
     containerUuid,
     isGetServer = true,
@@ -279,6 +279,7 @@ const getters = {
       fieldsList = getters.getFieldsListFromPanel(containerUuid)
     }
     const attributesRangue = []
+    const attributesDisplayColumn = []
     const attributesObject = {}
     let attributesList = fieldsList
       .map(fieldItem => {
@@ -327,9 +328,33 @@ const getters = {
         }
 
         // add display column to default
-        if (fieldItem.componentPath === 'FieldSelect' && fieldItem.value === parsedDefaultValue) {
-          // TODO: Verify displayColumn attribute, or get dispay column to fieldValue store
-          attributesObject[fieldItem.displayColumnName] = fieldItem.displayColumn
+        if (fieldItem.componentPath === 'FieldSelect') {
+          const { displayColumnName } = fieldItem
+          let displayedValue
+          if (!isEmptyValue(parsedDefaultValue)) {
+            const { tableName, directQuery, query } = fieldItem.reference
+            const optionsList = rootGetters.getLookupAll({
+              parentUuid,
+              containerUuid,
+              directQuery,
+              tableName,
+              query,
+              value: parsedDefaultValue
+            })
+            if (!isEmptyValue(optionsList)) {
+              const option = optionsList.find(item => item.id === parsedDefaultValue)
+              if (!isEmptyValue(option)) {
+                displayedValue = option.label
+              }
+            }
+          }
+
+          attributesObject[displayColumnName] = displayedValue
+          attributesDisplayColumn.push({
+            columnName: displayColumnName,
+            value: displayedValue,
+            isSQL
+          })
         }
 
         return {
@@ -340,7 +365,7 @@ const getters = {
         }
       })
     if (formatToReturn === 'array') {
-      attributesList = attributesList.concat(attributesRangue)
+      attributesList = attributesList.concat(attributesRangue, attributesDisplayColumn)
       return attributesList
     }
     return attributesObject
