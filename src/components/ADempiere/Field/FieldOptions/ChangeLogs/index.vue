@@ -15,14 +15,16 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <https:www.gnu.org/licenses/>.
 -->
+
 <template>
-  <el-card class="box-card">
-    <div slot="header" class="clearfix">
+  <el-card class="field-option-card change-log">
+    <div slot="header">
       <span>
         {{ $t('field.logsField') }}
         <b> {{ fieldAttributes.name }} </b>
       </span>
     </div>
+
     <div>
       <el-scrollbar v-if="!isEmptyValue(listLogsField)" :wrap-class="classIsMobilePanel">
         <el-timeline>
@@ -79,7 +81,8 @@
 <script>
 
 export default {
-  name: 'FieldChangeLogs',
+  name: 'ChangeLogsField',
+
   props: {
     fieldAttributes: {
       type: Object,
@@ -90,6 +93,7 @@ export default {
       default: undefined
     }
   },
+
   data() {
     return {
       isLoading: false,
@@ -97,6 +101,7 @@ export default {
       typeAction: 0
     }
   },
+
   computed: {
     language() {
       return this.$store.getters.language
@@ -133,6 +138,7 @@ export default {
       return 'scroll-child'
     }
   },
+
   methods: {
     sortSequence(itemA, itemB) {
       return new Date().setTime(new Date(itemB.logDate).getTime()) - new Date().setTime(new Date(itemA.logDate).getTime())
@@ -149,9 +155,12 @@ export default {
       }
     }
   }
+
 }
 </script>
 
+<style lang="scss" src="../common-style.scss">
+</style>
 <style lang="scss" scoped>
   .custom-tittle-popover {
     font-size: 14px;

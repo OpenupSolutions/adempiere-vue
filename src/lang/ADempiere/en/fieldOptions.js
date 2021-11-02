@@ -17,7 +17,24 @@
 const fieldOptions = {
   // calculator
   field: 'Field',
-  value: 'Value'
+  value: 'Value',
+  // preference value
+  currentValue: 'Current Value',
+  preference: {
+    title: 'Preference Value',
+    defaultMessage: 'Applies for this ',
+    defaultMessageUser: 'Applies for this ',
+    preferenceIsOk: 'The preference is saved',
+    preferenceRemoved: 'Preference Removed',
+    for: 'For ',
+    clientAndOrganization: 'this Client and this Organization',
+    allOrganizationOfClient: 'all Organizations of this Client',
+    entireSystem: 'entire System',
+    thisUser: ', this User',
+    allUsers: ', all Users',
+    thisWindow: ' and this Window',
+    allWindows: ' and all Windows'
+  }
 }
 
 export default fieldOptions
