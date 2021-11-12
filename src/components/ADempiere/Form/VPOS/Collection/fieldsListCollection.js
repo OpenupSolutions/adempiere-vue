@@ -50,7 +50,7 @@ export default [
       displayLogicPayment: 'D,K,T,A,P,C',
       size: 24,
       isActiveLogics: true,
-      isMandatory: true
+      isMandatory: false
     }
   },
   // Date
@@ -139,7 +139,7 @@ export default [
       size: 24,
       displayLogicPayment: 'C',
       isActiveLogics: true,
-      isMandatory: true
+      isMandatory: false
     }
   },
   // accountno
